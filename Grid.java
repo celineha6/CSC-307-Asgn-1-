@@ -1,26 +1,26 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-class Grid extends JFrame {
+public class Grid extends JFrame {
+    public static Game game = new Game();
 
     static final int SIZE = 30;
 
     static final int TILES = 30;
 
-    // 2D array to store buttons
     static JButton[][] buttons = new JButton[TILES][TILES];
 
-    // Main driver method
     public static void main(String[] args) {
-        // Creating a new JFrame
+        Game game = new Game();
         JFrame f = new JFrame("Game Of Life");
 
-        // Creating a JPanel with GridLayout
         JPanel p = new JPanel(new GridLayout(TILES, TILES));
+        JPanel p2 = new JPanel();
+        JButton next = new JButton("Next");
+        JButton clear = new JButton("Clear");
+        p2.add(next);
+        p2.add(clear);
 
-        // Initialize buttons and add them to the panel
         for (int x = 0; x < TILES; x++) {
             for (int y = 0; y < TILES; y++) {
                 buttons[x][y] = new JButton();
@@ -28,20 +28,15 @@ class Grid extends JFrame {
                 buttons[x][y].setOpaque(true);
                 buttons[x][y].setBorderPainted(false);
 
-                // Add ActionListener to handle button clicks
                 int finalX = x;
                 int finalY = y;
-                buttons[x][y].addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        JButton button = (JButton) e.getSource();
-                        if (button.getBackground() == Color.GRAY) {
-                            button.setBackground(Color.YELLOW);
-                            System.out.println(finalX);
-                            System.out.println(finalY);
-                        } else {
-                            button.setBackground(Color.GRAY);
-                        }
+                buttons[x][y].addActionListener(e -> {
+                    JButton button = (JButton) e.getSource();
+                    if (button.getBackground() == Color.GRAY) {
+                        button.setBackground(Color.YELLOW);
+                        game.changeState(finalX, finalY);
+                    } else {
+                        button.setBackground(Color.GRAY);
                     }
                 });
 
@@ -49,16 +44,43 @@ class Grid extends JFrame {
             }
         }
 
-        // Adding panel to frame
-        f.add(p);
+        next.addActionListener(e -> {
+            game.checkNeighbors();
+            game.nextMove();
+            boolean[][] gameGrid = game.getGameGrid();
+            for(int i = 0; i < SIZE; i++) {
+                for(int j = 0; j < SIZE; j++) {
+                    if(gameGrid[i][j]) {
+                        buttons[i][j].setBackground(Color.YELLOW);
+                    }
+                    else {
+                        buttons[i][j].setBackground(Color.GRAY);
+                    }
+                }
+            }
+        });
 
-        // Setting the size of frame
+        clear.addActionListener(e -> {
+            game.checkNeighbors();
+//            game.nextMove();
+            boolean[][] gameGrid = game.getGameGrid();
+            for(int i = 0; i < SIZE; i++) {
+                for(int j = 0; j < SIZE; j++) {
+                        gameGrid[i][j] = false;
+                        buttons[i][j].setBackground(Color.GRAY);
+                }
+            }
+        });
+
+        f.setLayout(new BorderLayout());
+
+        f.add(p, BorderLayout.CENTER);
+        f.add(p2, BorderLayout.SOUTH);
+
         f.setSize(TILES * SIZE, TILES * SIZE);
 
-        // Setting the default close operation
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Setting the frame visibility to true
         f.setVisible(true);
     }
 }
